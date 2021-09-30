@@ -1,25 +1,20 @@
-import logo from './logo.svg';
 import './App.css';
+import { SendBirdProvider as SBProvider } from "sendbird-uikit";
+import React from "react";
+import "sendbird-uikit/dist/index.css";
+import GroupChannel from './GroupChannel';
 
-function App() {
+export default function App() {
+  const APP_ID = process.env.REACT_APP_APP_ID
+  const USER_ID = process.env.REACT_APP_USER_ID
+  const NICKNAME = process.env.REACT_APP_NICKNAME
+  const ACCESS_TOKEN = process.env.REACT_APP_ACCESS_TOKEN
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+        <SBProvider appId={APP_ID} userId={USER_ID} nickname={NICKNAME} accessToken={ACCESS_TOKEN} >
+          <GroupChannel userId={USER_ID} /> 
+        </SBProvider>
     </div>
   );
 }
-
-export default App;
