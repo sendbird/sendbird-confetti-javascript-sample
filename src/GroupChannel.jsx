@@ -4,7 +4,6 @@ import { ChannelList , Channel , ChannelSettings, sendBirdSelectors, withSendBir
 import "./index.css";
 import CustomizedMessageItem from "./CustomizedMessageItem";
 import Confetti from "react-confetti";
-// import ConfettiTrigger from './ConfettiTrigger';
 
 function GroupChannel({ sdk, userId}) {
     const [currentChannel, setCurrentChannel] = useState(null);
@@ -24,30 +23,21 @@ function GroupChannel({ sdk, userId}) {
     }
 
     const handleSendUserMessage = (text) => {
-        console.log("sdk", sdk)
         const userMessageParams = new sdk.UserMessageParams();
-        console.log("userMessageparams",userMessageParams)
         if(text.includes("congrats") || text.includes("congratulations")){
             userMessageParams.data="confetti"
             setShowConfetti(true);
-            userMessageParams.message = text;
-            return userMessageParams;
         }
+        setTimeout(() => {
+            setShowConfetti(false);
+        }, 10000);
+        userMessageParams.message = text;
+        return userMessageParams;
     }
-    
-    // const CustomInputWithSendbird = withSendBird(ConfettiTrigger, (state) => {
-    //     const sendMessage = sendBirdSelectors.getSendUserMessage(state);
-    //     const sdk = sendBirdSelectors.getSdk(state);
-    //     return {
-    //         sendMessage,
-    //         sdk
-    //     };
-    // })
-    console.log(sdk)
+
     return (
       <div className="group-channel-wrap">
         {showConfetti &&
-            // <ConfettiTrigger showConfetti={showConfetti} setShowConfetti={setShowConfetti}/>,
             <Confetti   width={1300} height={800} />
         }
         <div className="channel-list">  
@@ -78,7 +68,6 @@ function GroupChannel({ sdk, userId}) {
                         userId={userId}
                     />
                 )}            
-                // renderMessageInput={CustomInputWithSendbird}
                 onBeforeSendUserMessage={handleSendUserMessage}
             />
         </div>
