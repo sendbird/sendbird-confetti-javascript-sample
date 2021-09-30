@@ -1,33 +1,43 @@
 import React, { useState } from "react";
+
 import {
   Card,
   CardHeader,
   Avatar,
   CardContent,
+  CardActions,
   Typography,
+  Button,
   TextField
 } from "@material-ui/core";
+import { makeStyles } from "@material-ui/styles";
+
+const useStyles = makeStyles({
+  highlighted: {
+    backgroundColor: "rgba(255,229,100,0.2)"
+  }
+});
+
+const HIGHLIGHT = "highlight";
 
 export default function UserMessage(props) {
+  const classes = useStyles();
   // props
   const { message, userId, onDeleteMessage, onUpdateMessage } = props;
+  const { customType } = message;
+  const isHighlighted = customType === HIGHLIGHT;
 
   // useState
-  const [messageText, changeMessageText] = useState(message.message);
-  const [messageOptions,setMessageOptions] = useState(false);
   const [pressedUpdate, setPressedUpdate] = useState(false);
-
-  const openDropdown=(e)=> {
-    setMessageOptions(!messageOptions);
-  }
+  const [messageText, changeMessageText] = useState(message.message);
 
   return (
-    <div className="user-message" >
-      <Card>
+    <div className="user-message">
+      <Card className={isHighlighted && classes.highlighted}>
         <CardHeader
           avatar={
             message.sender ? (
-              <Avatar alt="Us" src={message.sender.plainProfileUrl} />
+              <Avatar alt="Us" src={message.sender.profileUrl} />
             ) : (
               <Avatar className="user-message__avatar">Us</Avatar>
             )
@@ -47,6 +57,7 @@ export default function UserMessage(props) {
           {pressedUpdate && (
             <div className="user-message__text-area">
               <TextField
+                label="Edited text"
                 multiline
                 variant="filled"
                 rowsMax={4}
@@ -58,55 +69,49 @@ export default function UserMessage(props) {
             </div>
           )}
         </CardContent>
-        <button className="user-message__options-btn" onClick={(e) => openDropdown(e)} >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path className="icon-more_svg__fill" d="M32 45.333a5.333 5.333 0 110 10.666 5.333 5.333 0 010-10.666zM32 28a5.333 5.333 0 110 10.668A5.333 5.333 0 0132 28zm0-17.333c2.946 0 5.333 2.387 5.333 5.333S34.946 21.333 32 21.333 26.667 18.946 26.667 16s2.387-5.333 5.333-5.333z" fill="#000" fillRule="evenodd"></path></svg>
-        </button>    
-      {
-        messageOptions && (
-          <div className="message-options-wrap" >
-            <ul className="sendbird_dropdown_menu"> 
-                {message.sender && message.sender.userId === userId && (
-                  <div> 
-                      {pressedUpdate && (
-                        <li className="dropdown__menu-item" onClick={() => setPressedUpdate(false)}>
-                          <span className="dropdown__menu-item-text">Cancel</span>
-                        </li>
-                      )}
-
-                      {!pressedUpdate && (
-                        <li className="dropdown__menu-item" onClick={() => {setPressedUpdate(true)}}>
-                          <span className="dropdown__menu-item-text">Edit</span>
-                        </li>
-                      )}
-
-                      {pressedUpdate && (
-                        <li className="dropdown__menu-item" onClick={() => onUpdateMessage(message.messageId, messageText)}>
-                          <span className="dropdown__menu-item-text">Save</span>
-                        </li>
-                      )}
-
-                      {!pressedUpdate && (
-                        <li className="dropdown__menu-item" onClick={() => onDeleteMessage(message)}>
-                          <span className="dropdown__menu-item-text">Delete</span>
-                        </li>
-                      )}
-                  </div>
-                )}
-              </ul>
-          </div>
-
-
-          // <MenuItem 
-          // message={message}
-          // onUpdateMessage={onUpdateMessage}
-          // pressedUpdate={pressedUpdate}
-          // setPressedUpdate={setPressedUpdate}
-          // messageText={messageText}
-          // onDeleteMessage={onDeleteMessage}
-          // messageOptions={messageOptions}/>
-
-        ) 
-      }           
+        {message.sender && message.sender.userId === userId && (
+          <CardActions>
+            {!pressedUpdate && (
+              <Button
+                size="small"
+                variant="contained"
+                onClick={() => onDeleteMessage(message)}
+              >
+                Delete
+              </Button>
+            )}
+            {pressedUpdate && (
+              <Button
+                size="small"
+                variant="contained"
+                onClick={() => setPressedUpdate(false)}
+              >
+                Cancel
+              </Button>
+            )}
+            {!pressedUpdate && (
+              <Button
+                size="small"
+                variant="contained"
+                onClick={() => {
+                  setPressedUpdate(true);
+                }}
+              >
+                Update
+              </Button>
+            )}
+            {pressedUpdate && (
+              <Button
+                size="small"
+                variant="contained"
+                color="primary"
+                onClick={() => onUpdateMessage(message.messageId, messageText)}
+              >
+                Save
+              </Button>
+            )}
+          </CardActions>
+        )}
       </Card>
     </div>
   );
