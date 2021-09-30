@@ -10,6 +10,7 @@ function GroupChannel({ sdk, userId}) {
     const currentChannelUrl = currentChannel ? currentChannel.url : "";
     const [showSettings, setShowSettings] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
+    const [recycleOption, setRecycleOption]= useState(false);
     var channelChatDiv = document.getElementsByClassName('channel-chat')[0];
 
     const renderSettingsBar =()=>{     
@@ -27,18 +28,22 @@ function GroupChannel({ sdk, userId}) {
         if(text.includes("congrats") || text.includes("congratulations")){
             userMessageParams.data="confetti"
             setShowConfetti(true);
+            setRecycleOption(true);
         }
         setTimeout(() => {
-            setShowConfetti(false);
-        }, 10000);
+
+            setRecycleOption(false);
+        }, 3000);
+        //then setTimeout ->  setShowConfetti(false); (after recycles changed to false)
         userMessageParams.message = text;
         return userMessageParams;
     }
 
+    console.log(showConfetti)
     return (
       <div className="group-channel-wrap">
         {showConfetti &&
-            <Confetti   width={1300} height={800} />
+            <Confetti   width={1300} height={800} recycle={recycleOption}/>
         }
         <div className="channel-list">  
             <ChannelList
