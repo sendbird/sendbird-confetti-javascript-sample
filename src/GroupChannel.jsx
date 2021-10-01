@@ -5,6 +5,9 @@ import "./index.css";
 import CustomizedMessageItem from "./CustomizedMessageItem";
 import Confetti from "react-confetti";
 
+
+import SendBird from 'sendbird';
+
 function GroupChannel({ sdk, userId}) {
     const [currentChannel, setCurrentChannel] = useState(null);
     const currentChannelUrl = currentChannel ? currentChannel.url : "";
@@ -25,7 +28,7 @@ function GroupChannel({ sdk, userId}) {
 
     const handleSendUserMessage = (text) => {
         const userMessageParams = new sdk.UserMessageParams();
-        if(text.includes("congrats") || text.includes("congratulations")){
+        if(text.includes("congrats") || text.includes("congratulations") || text.includes("Congratulations") || text.includes("Congrats")){
             userMessageParams.data="confetti"
             setShowConfetti(true);
             setRecycleOption(true);
@@ -39,7 +42,21 @@ function GroupChannel({ sdk, userId}) {
         return userMessageParams;
     }
 
-    console.log(showConfetti)
+
+
+
+    const createChannelHandler=()=>{
+        var sb = SendBird.getInstance();
+        console.log(sb)
+        const channelHandler = new sb.ChannelHandler();	
+        channelHandler.onMessageReceived = (channel, message) => {   
+            console.log("MESSAGE RECEIEVED", channel, message)
+            // if( onMessageReceieved){
+            //    //CONFETTI
+            // };
+        };
+    }  
+
     return (
       <div className="group-channel-wrap">
         {showConfetti &&
@@ -71,9 +88,12 @@ function GroupChannel({ sdk, userId}) {
                         onDeleteMessage={onDeleteMessage}
                         onUpdateMessage={onUpdateMessage}
                         userId={userId}
+                        setShowConfetti={setShowConfetti}
+                        setRecycleOption={setRecycleOption}
                     />
                 )}            
                 onBeforeSendUserMessage={handleSendUserMessage}
+                onBeforeUpdateUserMessage={handleSendUserMessage}
             />
         </div>
         {showSettings && (
