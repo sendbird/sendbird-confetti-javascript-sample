@@ -4,8 +4,6 @@ import { ChannelList , Channel , ChannelSettings, sendBirdSelectors, withSendBir
 import "./index.css";
 import CustomizedMessageItem from "./CustomizedMessageItem";
 import Confetti from "react-confetti";
-
-
 import SendBird from 'sendbird';
 
 function GroupChannel({ sdk, userId}) {
@@ -16,7 +14,7 @@ function GroupChannel({ sdk, userId}) {
     const [recycleOption, setRecycleOption]= useState(false);
     var channelChatDiv = document.getElementsByClassName('channel-chat')[0];
 
-    const renderSettingsBar =()=>{     
+    const renderSettingsBar=()=>{     
         channelChatDiv.style.width="52%";
         channelChatDiv.style.cssFloat="left";
     }
@@ -30,32 +28,34 @@ function GroupChannel({ sdk, userId}) {
         const userMessageParams = new sdk.UserMessageParams();
         if(text.includes("congrats") || text.includes("congratulations") || text.includes("Congratulations") || text.includes("Congrats")){
             userMessageParams.data="confetti"
-            setShowConfetti(true);
-            setRecycleOption(true);
+            triggerConfetti();
         }
-        setTimeout(() => {
-
-            setRecycleOption(false);
-        }, 3000);
         //then setTimeout ->  setShowConfetti(false); (after recycles changed to false)
         userMessageParams.message = text;
         return userMessageParams;
     }
 
+    const triggerConfetti=()=>{
+        setShowConfetti(true);
+        setRecycleOption(true);
+          
+        setTimeout(() => {
+          setRecycleOption(false);
+        }, 3000);
+    };
 
+    var sb = SendBird.getInstance();
+    const channelHandler = new sb.ChannelHandler();
+    channelHandler.onMessageReceived = (channel, message)=>{   
+        console.log("MESSAGE RECEIEVED", channel, message)
+        // if(message.data="confetti"){
+        //    triggerConfetti();
+        // };
+    };
+    
+    var key = uuid4;
+    sb.addChannelHandler(key, channelHandler.onMessageReceived);
 
-
-    const createChannelHandler=()=>{
-        var sb = SendBird.getInstance();
-        console.log(sb)
-        const channelHandler = new sb.ChannelHandler();	
-        channelHandler.onMessageReceived = (channel, message) => {   
-            console.log("MESSAGE RECEIEVED", channel, message)
-            // if( onMessageReceieved){
-            //    //CONFETTI
-            // };
-        };
-    }  
 
     return (
       <div className="group-channel-wrap">
@@ -117,3 +117,13 @@ export default withSendBird(GroupChannel, (store) => {
       user: store.stores.userStore.user
     };
 });
+
+export const uuid4 = () => {
+    let d = new Date().getTime();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = ((d + Math.random() * 16) % 16) | 0;
+      d = Math.floor(d / 16);
+      return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+    });
+  };
+  
