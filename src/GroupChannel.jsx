@@ -4,7 +4,7 @@ import { ChannelList , Channel , ChannelSettings, sendBirdSelectors, withSendBir
 import "./index.css";
 import CustomizedMessageItem from "./CustomizedMessageItem";
 import Confetti from "react-confetti";
-import SendBird from 'sendbird';
+import { useCookies } from 'react-cookie';
 
 function GroupChannel({ sdk, userId}) {
     const [currentChannel, setCurrentChannel] = useState(null);
@@ -12,7 +12,9 @@ function GroupChannel({ sdk, userId}) {
     const [showSettings, setShowSettings] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
     const [recycleOption, setRecycleOption]= useState(false);
+    const [message, setMessage]=useState({});
     var channelChatDiv = document.getElementsByClassName('channel-chat')[0];
+    const [cookies, setCookie] = useCookies(['viewedMessage','messageId', 'confetti']);
 
     const renderSettingsBar=()=>{     
         channelChatDiv.style.width="52%";
@@ -26,11 +28,20 @@ function GroupChannel({ sdk, userId}) {
 
     const handleSendUserMessage = (text) => {
         const userMessageParams = new sdk.UserMessageParams();
+        let hasConfetti = false;
         if(text.includes("congrats") || text.includes("congratulations") || text.includes("Congratulations") || text.includes("Congrats")){
-            userMessageParams.data="confetti"
-            triggerConfetti();
-        }
-        //then setTimeout ->  setShowConfetti(false); (after recycles changed to false)
+            userMessageParams.data="confetti";
+            hasConfetti = true;
+            triggerConfetti(); 
+        }  
+        //add  in setCookie( {path: "/", expires: timeVariable } ) ?
+//How do you attach this cookie obj to this message? 
+        setCookie('viewedMessage', false)
+        setCookie('messageId', message.messageId)
+        setCookie('confetti', hasConfetti)
+//why is setting confetti delayed ??
+        console.log("cookies", cookies)
+
         userMessageParams.message = text;
         return userMessageParams;
     }
@@ -44,18 +55,15 @@ function GroupChannel({ sdk, userId}) {
         }, 3000);
     };
 
-    var sb = SendBird.getInstance();
-    const channelHandler = new sb.ChannelHandler();
-    channelHandler.onMessageReceived = (channel, message)=>{   
-        console.log("MESSAGE RECEIEVED", channel, message)
-        // if(message.data="confetti"){
-        //    triggerConfetti();
-        // };
-    };
+// Track in a cookie which ID’s I’ve seen by messageID -> create viewedMessage
+// Get cookie values in JS & say I’ve got a cookie value here w/ confetti & I’ve seen before
     
-    var key = uuid4;
-    sb.addChannelHandler(key, channelHandler.onMessageReceived);
-
+    // Check messageID & confetti & viewedMessage 
+        // if(!cookies.viewedMessage && cookies.confetti)       didnt view msg & confettis true
+            //triggerConfetti()
+    // viewedMessage, do nothing
+    // Otherwise, if there’s a global Boolean that says currentlyShowingConfetti? 
+            //If false, then SHOW confetti
 
     return (
       <div className="group-channel-wrap">
@@ -88,8 +96,7 @@ function GroupChannel({ sdk, userId}) {
                         onDeleteMessage={onDeleteMessage}
                         onUpdateMessage={onUpdateMessage}
                         userId={userId}
-                        setShowConfetti={setShowConfetti}
-                        setRecycleOption={setRecycleOption}
+                        setMessage={setMessage}
                     />
                 )}            
                 onBeforeSendUserMessage={handleSendUserMessage}
