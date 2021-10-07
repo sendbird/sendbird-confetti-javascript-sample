@@ -28,9 +28,9 @@ function GroupChannel({ sdk, userId}) {
 
     const handleSendUserMessage = (text) => {
         const userMessageParams = new sdk.UserMessageParams();
-        if(text.includes("congrats") || text.includes("congratulations") || text.includes("Congratulations") || text.includes("Congrats")){
+        if(text.includes("congrats") || text.includes("CONGRATS") || text.includes("congratulations") || text.includes("CONGRATULATIONS") || text.includes("Congratulations") || text.includes("Congrats")){
             userMessageParams.data="confetti";
-            triggerConfetti(); 
+            checkCurrentMessageSeen(); 
         }  
         userMessageParams.message = text;
         return userMessageParams;
@@ -38,28 +38,33 @@ function GroupChannel({ sdk, userId}) {
     
     const triggerConfetti=()=>{
         setShowConfetti(true);
-        setRecycleOption(true);
-          
+        setRecycleOption(true);  
         setTimeout(() => {
-          setRecycleOption(false);
+            setRecycleOption(false);
         }, 3000);
-
-        console.log("current messageID",message.messageId)
- 
-//if confettiSeen has values in string  (@ 1st its set as undefined)
-        if(cookies.confettiSeen){
-
-
-         } else {
-             //else if its undefined, set 1st messageId as cookie string
-            let value = `${message.messageId},`;   
-            setCookie('confettiSeen', value);
-         }
-  
     };
 
-// removeCookie('confettiSeen')
-console.log("cookie.confettiSeen", cookies.confettiSeen)
+    const checkCurrentMessageSeen=()=>{  
+        let currentMessageId= `${message.messageId}`;
+        if(cookies.confettiSeen){
+            let arrayConfettiSeen = cookies.confettiSeen.split(',');
+            if(!arrayConfettiSeen.includes(currentMessageId)){
+                triggerConfetti();
+                let currentMessageIdString = `${currentMessageId}`;
+                arrayConfettiSeen.push(currentMessageIdString);
+                let newValue = arrayConfettiSeen.join(',');
+                setCookie('confettiSeen', newValue);
+            };    
+        } else {
+            let value = `${message.messageId}`;   
+            setCookie('confettiSeen', value);
+            triggerConfetti();
+        }
+        console.log(cookies.confettiSeen)
+    };
+
+// removeCookie('confettiSeen');
+
     return (
       <div className="group-channel-wrap">
         {showConfetti &&
