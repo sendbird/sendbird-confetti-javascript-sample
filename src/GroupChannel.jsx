@@ -14,7 +14,7 @@ function GroupChannel({ sdk, userId}) {
     const [recycleOption, setRecycleOption]= useState(false);
     const [message, setMessage]=useState({});
     var channelChatDiv = document.getElementsByClassName('channel-chat')[0];
-    const [cookies, setCookie] = useCookies(['viewedMessage','messageId', 'confetti']);
+    const [cookies, setCookie, removeCookie] = useCookies(['confettiSeen']);
 
     const renderSettingsBar=()=>{     
         channelChatDiv.style.width="52%";
@@ -28,24 +28,14 @@ function GroupChannel({ sdk, userId}) {
 
     const handleSendUserMessage = (text) => {
         const userMessageParams = new sdk.UserMessageParams();
-        let hasConfetti = false;
         if(text.includes("congrats") || text.includes("congratulations") || text.includes("Congratulations") || text.includes("Congrats")){
             userMessageParams.data="confetti";
-            hasConfetti = true;
             triggerConfetti(); 
         }  
-        //add  in setCookie( {path: "/", expires: timeVariable } ) ?
-//How do you attach this cookie obj to this message? 
-        setCookie('viewedMessage', false)
-        setCookie('messageId', message.messageId)
-        setCookie('confetti', hasConfetti)
-//why is setting confetti delayed ??
-        console.log("cookies", cookies)
-
         userMessageParams.message = text;
         return userMessageParams;
     }
-
+    
     const triggerConfetti=()=>{
         setShowConfetti(true);
         setRecycleOption(true);
@@ -53,18 +43,23 @@ function GroupChannel({ sdk, userId}) {
         setTimeout(() => {
           setRecycleOption(false);
         }, 3000);
+
+        console.log("current messageID",message.messageId)
+ 
+//if confettiSeen has values in string  (@ 1st its set as undefined)
+        if(cookies.confettiSeen){
+
+
+         } else {
+             //else if its undefined, set 1st messageId as cookie string
+            let value = `${message.messageId},`;   
+            setCookie('confettiSeen', value);
+         }
+  
     };
 
-// Track in a cookie which ID’s I’ve seen by messageID -> create viewedMessage
-// Get cookie values in JS & say I’ve got a cookie value here w/ confetti & I’ve seen before
-    
-    // Check messageID & confetti & viewedMessage 
-        // if(!cookies.viewedMessage && cookies.confetti)       didnt view msg & confettis true
-            //triggerConfetti()
-    // viewedMessage, do nothing
-    // Otherwise, if there’s a global Boolean that says currentlyShowingConfetti? 
-            //If false, then SHOW confetti
-
+// removeCookie('confettiSeen')
+console.log("cookie.confettiSeen", cookies.confettiSeen)
     return (
       <div className="group-channel-wrap">
         {showConfetti &&
