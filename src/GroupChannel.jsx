@@ -48,7 +48,7 @@ function GroupChannel({ sdk, userId }) {
     var difference = endDate - startDate;
     var secondsInDay = 86400;
 
-    if ((message.data === "confetti")) {
+    if (message.data === "confetti") {
       if (cookies.confettiSeen) {
         let arrayConfettiSeen = cookies.confettiSeen.split(",");
         const includesId = (id) => id.includes(currentMessageId);
@@ -63,10 +63,7 @@ function GroupChannel({ sdk, userId }) {
           let newValue = arrayConfettiSeen.join(",");
           setCookie("confettiSeen", newValue);
         }
-      } else if (
-        currentMessageId !== 0 &&
-        difference < secondsInDay
-      ) {
+      } else if (currentMessageId !== 0 && difference < secondsInDay) {
         let value = `${message.messageId}=${startDate}`;
         setCookie("confettiSeen", value);
         triggerConfetti();
@@ -92,7 +89,23 @@ function GroupChannel({ sdk, userId }) {
     return userMessageParams;
   };
 
-// removeCookie('confettiSeen');
+  // removeCookie('confettiSeen');
+
+  const MyCustomChatMessage = ({
+    message,
+    onDeleteMessage,
+    onUpdateMessage,
+  }) => (
+    <CustomizedMessageItem
+      message={message}
+      onDeleteMessage={onDeleteMessage}
+      onUpdateMessage={onUpdateMessage}
+      userId={userId}
+      setMessage={setMessage}
+      checkCurrentMessageSeen={checkCurrentMessageSeen}
+    />
+  );
+
   return (
     <div className="group-channel-wrap">
       {showConfetti && (
@@ -114,19 +127,11 @@ function GroupChannel({ sdk, userId }) {
             setShowSettings(!showSettings);
             renderSettingsBar();
           }}
-          renderChatItem={({ message, onDeleteMessage, onUpdateMessage }) => (
-            <CustomizedMessageItem
-              message={message}
-              onDeleteMessage={onDeleteMessage}
-              onUpdateMessage={onUpdateMessage}
-              userId={userId}
-              setMessage={setMessage}
-              checkCurrentMessageSeen={checkCurrentMessageSeen}
-            />
-          )}
+          renderChatItem={MyCustomChatMessage}
           onBeforeSendUserMessage={handleSendUserMessage}
-          onBeforeUpdateUserMessage={handleSendUserMessage}
-          onBeforeUpdateUserMessage={handleSendUserMessage}
+          // ** no duplicate props allowed:
+          // onBeforeUpdateUserMessage={handleSendUserMessage}
+          // onBeforeUpdateUserMessage={handleSendUserMessage}
         />
       </div>
       {showSettings && (
