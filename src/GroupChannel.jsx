@@ -73,15 +73,11 @@ function GroupChannel({ sdk, userId }) {
 
   const handleSendUserMessage = (text) => {
     const userMessageParams = new sdk.UserMessageParams();
+    let lowerCaseText = text.toLowerCase();
     if (
-      text.includes("congrats") ||
-      text.includes("CONGRATS") ||
-      text.includes("congratulations") ||
-      text.includes("CONGRATULATIONS") ||
-      text.includes("Congratulations") ||
-      text.includes("Congrats")
+      lowerCaseText.includes("congrats") ||
+      lowerCaseText.includes("congratulations")
     ) {
-      console.log("setting data as confetti");
       userMessageParams.data = "confetti";
       triggerConfetti();
     }
@@ -96,14 +92,14 @@ function GroupChannel({ sdk, userId }) {
     onDeleteMessage,
     onUpdateMessage,
   }) => (
-    <CustomizedMessageItem
-      message={message}
-      onDeleteMessage={onDeleteMessage}
-      onUpdateMessage={onUpdateMessage}
-      userId={userId}
-      setMessage={setMessage}
-      checkCurrentMessageSeen={checkCurrentMessageSeen}
-    />
+      <CustomizedMessageItem
+        message={message}
+        onDeleteMessage={onDeleteMessage}
+        onUpdateMessage={onUpdateMessage}
+        userId={userId}
+        setMessage={setMessage}
+        checkCurrentMessageSeen={checkCurrentMessageSeen}
+      />
   );
 
   return (
