@@ -4,19 +4,18 @@ import FileMessage from "./MessageItems/FileMessage";
 import UserMessage from "./MessageItems/UserMessage";
 
 export default function CustomizedMessageItem(props) {
+
   const {
     message,
     emojiContainer,
     onDeleteMessage,
     onUpdateMessage,
     userId,
-    setMessage,
-    checkCurrentMessageSeen,
+    checkCurrentMessageSeen
   } = props;
 
   if (message) {
-    setMessage(message);
-    checkCurrentMessageSeen();
+    checkCurrentMessageSeen(message);
   }
 
   const MessageHOC = useMemo(() => {

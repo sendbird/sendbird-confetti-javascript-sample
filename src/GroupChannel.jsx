@@ -19,7 +19,6 @@ function GroupChannel({ sdk, userId }) {
   const [showSettings, setShowSettings] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [recycleOption, setRecycleOption] = useState(false);
-  const [message, setMessage] = useState({});
   var channelChatDiv = document.getElementsByClassName("channel-chat")[0];
   const [cookies, setCookie, removeCookie] = useCookies(["confettiSeen"]);
 
@@ -41,7 +40,7 @@ function GroupChannel({ sdk, userId }) {
     }, 3000);
   };
 
-  const checkCurrentMessageSeen = () => {
+  const checkCurrentMessageSeen = (message) => {
     let currentMessageId = `${message.messageId}`;
     var startDate = message.createdAt;
     var endDate = new Date().getTime() / 1000;
@@ -79,28 +78,13 @@ function GroupChannel({ sdk, userId }) {
       lowerCaseText.includes("congratulations")
     ) {
       userMessageParams.data = "confetti";
-      triggerConfetti();
+      triggerConfetti(setShowConfetti, setRecycleOption);
     }
     userMessageParams.message = text;
     return userMessageParams;
   };
 
   // removeCookie('confettiSeen');
-
-  const MyCustomChatMessage = ({
-    message,
-    onDeleteMessage,
-    onUpdateMessage,
-  }) => (
-      <CustomizedMessageItem
-        message={message}
-        onDeleteMessage={onDeleteMessage}
-        onUpdateMessage={onUpdateMessage}
-        userId={userId}
-        setMessage={setMessage}
-        checkCurrentMessageSeen={checkCurrentMessageSeen}
-      />
-  );
 
   return (
     <div className="group-channel-wrap">
@@ -123,7 +107,15 @@ function GroupChannel({ sdk, userId }) {
             setShowSettings(!showSettings);
             renderSettingsBar();
           }}
-          renderChatItem={MyCustomChatMessage}
+          renderChatItem={({ message, onDeleteMessage, onUpdateMessage }) => (
+            <CustomizedMessageItem
+              message={message}
+              onDeleteMessage={onDeleteMessage}
+              onUpdateMessage={onUpdateMessage}
+              userId={userId}
+              checkCurrentMessageSeen={checkCurrentMessageSeen}
+            />
+          )}
           onBeforeSendUserMessage={handleSendUserMessage}
           // ** no duplicate props allowed:
           // onBeforeUpdateUserMessage={handleSendUserMessage}
