@@ -11,7 +11,6 @@ import {
 import "./index.css";
 import CustomizedMessageItem from "./CustomizedMessageItem";
 import Confetti from "react-confetti";
-import { useCookies } from "react-cookie";
 
 function GroupChannel({ sdk, userId }) {
   const [currentChannel, setCurrentChannel] = useState(null);
@@ -20,7 +19,6 @@ function GroupChannel({ sdk, userId }) {
   const [showConfetti, setShowConfetti] = useState(false);
   const [recycleOption, setRecycleOption] = useState(false);
   var channelChatDiv = document.getElementsByClassName("channel-chat")[0];
-  const [cookies, setCookie, removeCookie] = useCookies(["confettiSeen"]);
 
   const renderSettingsBar = () => {
     channelChatDiv.style.width = "52%";
@@ -41,42 +39,14 @@ function GroupChannel({ sdk, userId }) {
   };
 
   const checkCurrentMessageSeen = (message) => {
-    let currentMessageId = `${message.messageId}`;
-    var startDate = message.createdAt;
-    var endDate = new Date().getTime() / 1000;
-    var difference = endDate - startDate;
-    var secondsInDay = 86400;
-
-    if (message.data === "confetti") {
-      if (cookies.confettiSeen) {
-        let arrayConfettiSeen = cookies.confettiSeen.split(",");
-        const includesId = (id) => id.includes(currentMessageId);
-        if (
-          !arrayConfettiSeen.some(includesId) &&
-          currentMessageId !== 0 &&
-          difference < secondsInDay
-        ) {
-          triggerConfetti();
-          let currentMessageString = `${currentMessageId}=${startDate}`;
-          arrayConfettiSeen.push(currentMessageString);
-          let newValue = arrayConfettiSeen.join(",");
-          setCookie("confettiSeen", newValue);
-        }
-      } else if (currentMessageId !== 0 && difference < secondsInDay) {
-        let value = `${message.messageId}=${startDate}`;
-        setCookie("confettiSeen", value);
-        triggerConfetti();
-      }
-    }
+    var confettiDecay = 0;
+    var confettiTime = 0;
   };
 
   const handleSendUserMessage = (text) => {
     const userMessageParams = new sdk.UserMessageParams();
     let lowerCaseText = text.toLowerCase();
-    if (
-      lowerCaseText.includes("congrats") ||
-      lowerCaseText.includes("congratulations")
-    ) {
+    if (lowerCaseText.includes("congrat")) {
       userMessageParams.data = "confetti";
       triggerConfetti(setShowConfetti, setRecycleOption);
     }
@@ -84,7 +54,44 @@ function GroupChannel({ sdk, userId }) {
     return userMessageParams;
   };
 
-  // removeCookie('confettiSeen');
+  const channelHandler = new sdk.ChannelHandler();
+  channelHandler.onMessageReceived = (channel, message) => {
+    if (message.data === "confetti") {
+      channel.createMessageMetaArrayKeys(
+        message,
+        ["confetti"],
+        function (message, error) {
+          if (error) {
+            console.log("error: createMessageMetaArrayKeys");
+          }
+          var metaArraysValue = message.metaArrays[0].value;
+          var found = metaArraysValue.find((msgString) => {
+            msgString.includes(userId);
+          });
+          //if theres a metaArraysValue already && userId is NOT found OR no metaArraysValue set yet
+          if (metaArraysValue && !found || !metaArraysValue) {
+            let currentMessageString = `${userId}`;
+            metaArraysValue.push(currentMessageString);
+            channel.addMessageMetaArrayValues(
+              message,
+              { confetti: metaArraysValue },
+              function (message, error) {
+                if (error) {
+                  console.log("error: addMessageMetaArrayValues");
+                }
+                triggerConfetti(setShowConfetti, setRecycleOption);
+              }
+            );
+          } 
+        }
+      );
+    }
+  };
+
+  channelHandler.onMessageUpdated = (channel, message) => {
+    console.log("onMessageUpdated:", message)
+  }
+  sdk.addChannelHandler("abc12334", channelHandler);
 
   return (
     <div className="group-channel-wrap">
@@ -107,13 +114,20 @@ function GroupChannel({ sdk, userId }) {
             setShowSettings(!showSettings);
             renderSettingsBar();
           }}
-          renderChatItem={({ message, onDeleteMessage, onUpdateMessage }) => (
+          renderChatItem={({
+            message,
+            onDeleteMessage,
+            onUpdateMessage,
+            emojiContainer,
+          }) => (
             <CustomizedMessageItem
               message={message}
               onDeleteMessage={onDeleteMessage}
               onUpdateMessage={onUpdateMessage}
+              emojiContainer={emojiContainer}
               userId={userId}
               checkCurrentMessageSeen={checkCurrentMessageSeen}
+              sdk={sdk}
             />
           )}
           onBeforeSendUserMessage={handleSendUserMessage}
@@ -143,12 +157,3 @@ export default withSendBird(GroupChannel, (store) => {
     user: store.stores.userStore.user,
   };
 });
-
-export const uuid4 = () => {
-  let d = new Date().getTime();
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-    const r = (d + Math.random() * 16) % 16 | 0;
-    d = Math.floor(d / 16);
-    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
-  });
-};
