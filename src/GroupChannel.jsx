@@ -45,73 +45,61 @@ function GroupChannel({ sdk, userId }) {
 
   const handleSendUserMessage = (text) => {
     const userMessageParams = new sdk.UserMessageParams();
-    // const metaArray = new MessageMetaArray('shownConfetti', ['123456'])
-    // console.log('metaArray=', metaArray)
     let lowerCaseText = text.toLowerCase();
     if (lowerCaseText.includes("congrat")) {
       userMessageParams.data = "confetti";
-      var shownConfettiArray = new sdk.MessageMetaArray('shownConfetti', ['123456'])
-      userMessageParams.metaArrays = [shownConfettiArray]; 
+      var shownConfettiArray = new sdk.MessageMetaArray("shownConfetti", [
+        `${userId}`,
+      ]);
+      userMessageParams.metaArrays = [shownConfettiArray];
       triggerConfetti(setShowConfetti, setRecycleOption);
     }
     userMessageParams.message = text;
     return userMessageParams;
   };
 
-  //when msg received by Michelle,
-  //create metaArray key/value for that message if it contains confetti
-  //when msg received by chris -> metaArray will have key/value pair already since Michelle's userId is in the value (aka seen it already)
-  //metaArray holds the users that've seen the confetti already so it doesnt retrigger for anyone
+  //when msg received by other user -> metaArray has key/value pair
   if (sdk && sdk.ChannelHandler) {
     var channelHandler = new sdk.ChannelHandler();
     channelHandler.onMessageReceived = (channel, message) => {
+      //if userId is NOT in meta array value, then triggerConfetti() & add userID to metaArray value
 
-    //   console.log('channel=', channel)
-    //   if (message.data === "confetti") {
-    //     channel.createMessageMetaArrayKeys(
-    //       message,
-    //       ["confetti"],
-    //       function (message, error) {
-    //         if (error) {
-    //           console.log("error: createMessageMetaArrayKeys");
-    //         }
-    //         var metaArraysValue = message.metaArrays[0].value;
-    //         var found = metaArraysValue.find((msgString) => {
-    //           msgString.includes(userId);
-    //         });
-    //         //if theres a metaArraysValue already && userId is NOT found OR no metaArraysValue set yet
-    //         if ((metaArraysValue && !found) || !metaArraysValue) {
-    //           let currentMessageString = `${userId}`;
-    //           //** isnt updating metaArraysValue -> only replacing the currentMsgString */
-    //           metaArraysValue.push(currentMessageString);
-    //           channel.addMessageMetaArrayValues(
-    //             message,
-    //             { confetti: metaArraysValue },
-    //             function (message, error) {
-    //               if (error) {
-    //                 console.log("error: addMessageMetaArrayValues");
-    //               }
-    //               triggerConfetti(setShowConfetti, setRecycleOption);
-    //               console.log("message=",message)
-    //             }
-    //           );
-    //         }
-    //       }
-    //     );
-    //   }
-      console.log("onMessageReceived; message=", message)
+      if (message.data === "confetti") {
+        var metaArraysValue = message.metaArrays[0].value;
+        console.log("metaArraysValue", metaArraysValue);
+
+        var found = metaArraysValue.find((msgString) => {
+          msgString.includes(userId);
+        });
+
+        if (!found) {
+          let currentMessageString = `${userId}`;
+          metaArraysValue.push(currentMessageString);
+          console.log("metaArraysValue w/ current UserID", metaArraysValue);
+          channel.addMessageMetaArrayValues(
+            message,
+            { shownConfetti: metaArraysValue },
+            function (message, error) {
+              if (error) {
+                console.log("error: addMessageMetaArrayValues");
+              }
+              
+            }
+          );
+          triggerConfetti(setShowConfetti, setRecycleOption);
+        }
+      }
+      console.log("onMessageReceived; message=", message);
     };
 
+    //where we'll check to see if its in the last 3 messages / within 24 hrs
+    // channelHandler.onMessageUpdated = (channel, message) => {
+    //   //if you add metaArrays after the msg was sent, you'll recieve message changes here (when you add meta array key/values)
+    //   console.log("onMessageUpdated:", message)
+    // }
+
     sdk.addChannelHandler("abc12334", channelHandler);
-    
   }
-
-//   //here is where we'll check to see if its in the last 3 messages / within 24 hrs
-//   channelHandler.onMessageUpdated = (channel, message) => {
-// //if you add metaArrays after the msg was sent, you'll recieve message changes here (when you add meta array key/values)
-//     console.log("onMessageUpdated:", message)
-//   }
-
 
   return (
     <div className="group-channel-wrap">
