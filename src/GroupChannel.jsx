@@ -58,24 +58,15 @@ function GroupChannel({ sdk, userId }) {
     return userMessageParams;
   };
 
-  //when msg received by other user -> metaArray has key/value pair
   if (sdk && sdk.ChannelHandler) {
     var channelHandler = new sdk.ChannelHandler();
     channelHandler.onMessageReceived = (channel, message) => {
-      //if userId is NOT in meta array value, then triggerConfetti() & add userID to metaArray value
-
       if (message.data === "confetti") {
         var metaArraysValue = message.metaArrays[0].value;
-        console.log("metaArraysValue", metaArraysValue);
-
-        var found = metaArraysValue.find((msgString) => {
-          msgString.includes(userId);
-        });
-
+        var found = metaArraysValue.find(msgString => msgString.includes(userId));
         if (!found) {
           let currentMessageString = `${userId}`;
           metaArraysValue.push(currentMessageString);
-          console.log("metaArraysValue w/ current UserID", metaArraysValue);
           channel.addMessageMetaArrayValues(
             message,
             { shownConfetti: metaArraysValue },
@@ -83,7 +74,6 @@ function GroupChannel({ sdk, userId }) {
               if (error) {
                 console.log("error: addMessageMetaArrayValues");
               }
-              
             }
           );
           triggerConfetti(setShowConfetti, setRecycleOption);
@@ -93,11 +83,9 @@ function GroupChannel({ sdk, userId }) {
     };
 
     //where we'll check to see if its in the last 3 messages / within 24 hrs
-    // channelHandler.onMessageUpdated = (channel, message) => {
-    //   //if you add metaArrays after the msg was sent, you'll recieve message changes here (when you add meta array key/values)
-    //   console.log("onMessageUpdated:", message)
-    // }
-
+    channelHandler.onMessageUpdated = (channel, message) => {
+      console.log("onMessageUpdated:", message)
+    }
     sdk.addChannelHandler("abc12334", channelHandler);
   }
 
