@@ -10,13 +10,11 @@ export default function CustomizedMessageItem(props) {
     onDeleteMessage,
     onUpdateMessage,
     userId,
-    checkCurrentMessageSeen,
-    sdk
+    checkCurrentMessageSeen
   } = props;
 
   if (message) {
-    checkCurrentMessageSeen(message);    
-    console.log("message",message)
+    checkCurrentMessageSeen(message);
   }
 
   const MessageHOC = useMemo(() => {
