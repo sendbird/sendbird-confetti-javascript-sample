@@ -38,18 +38,15 @@ function GroupChannel({ sdk, userId }) {
     }, 3000);
   };
 
-  const checkCurrentMessageSeen = (message) => {
-    // var confettiDecay = 0;
-    // var confettiTime = 0;
-  };
-
   const handleSendUserMessage = (text) => {
     const userMessageParams = new sdk.UserMessageParams();
     let lowerCaseText = text.toLowerCase();
+    let createdAt = new Date().getTime();
+    console.log(createdAt);
     if (lowerCaseText.includes("congrat")) {
       userMessageParams.data = "confetti";
       var shownConfettiArray = new sdk.MessageMetaArray("shownConfetti", [
-        `${userId}`,
+        `${userId}=${createdAt}`,
       ]);
       userMessageParams.metaArrays = [shownConfettiArray];
       triggerConfetti(setShowConfetti, setRecycleOption);
@@ -58,34 +55,74 @@ function GroupChannel({ sdk, userId }) {
     return userMessageParams;
   };
 
-  if (sdk && sdk.ChannelHandler) {
+  if (currentChannel && sdk && sdk.ChannelHandler) {
+    var listQuery = currentChannel.createPreviousMessageListQuery();
+    listQuery.limit = 20;
+    listQuery.includeMetaArray = true;
+    listQuery.load(function (messages, error) {
+      if (error) {
+        console.log("error in listQuery");
+      }
+      messages.forEach((message) => {
+        if (message.data === "confetti") {
+          var startDate = message.createdAt;
+          var endDate = new Date().getTime();
+          var difference = endDate - startDate;
+          var secondsInDay = 86400;
+          var metaArraysValue = message.metaArrays[0].value;
+          var found = metaArraysValue.find((msgString) =>
+            msgString.includes(userId)
+          );
+          if (!found && difference < secondsInDay) {
+            let currentMessageString = `${userId}=${message.createdAt}`;
+            metaArraysValue.push(currentMessageString);
+            currentChannel.addMessageMetaArrayValues(
+              message,
+              { shownConfetti: metaArraysValue },
+              function (message, error) {
+                if (error) {
+                  console.log("error: addMessageMetaArrayValues");
+                }
+                triggerConfetti(setShowConfetti, setRecycleOption);
+              }
+            );
+          }
+        }
+      });
+    });
+
     var channelHandler = new sdk.ChannelHandler();
     channelHandler.onMessageReceived = (channel, message) => {
       if (message.data === "confetti") {
+        var startDate = message.createdAt;
+        var endDate = new Date().getTime();
+        var difference = endDate - startDate;
+        var secondsInDay = 86400;
         var metaArraysValue = message.metaArrays[0].value;
-        var found = metaArraysValue.find(msgString => msgString.includes(userId));
-        if (!found) {
-          let currentMessageString = `${userId}`;
+        var found = metaArraysValue.find((msgString) =>
+          msgString.includes(userId)
+        );
+        if (!found && difference < secondsInDay) {
+          let currentMessageString = `${userId}=${message.createdAt}`;
           metaArraysValue.push(currentMessageString);
-          channel.addMessageMetaArrayValues(
+          currentChannel.addMessageMetaArrayValues(
             message,
             { shownConfetti: metaArraysValue },
             function (message, error) {
               if (error) {
                 console.log("error: addMessageMetaArrayValues");
               }
+              triggerConfetti(setShowConfetti, setRecycleOption);
             }
           );
-          triggerConfetti(setShowConfetti, setRecycleOption);
         }
       }
-      console.log("onMessageReceived; message=", message);
     };
 
-    //where we'll check to see if its in the last 3 messages / within 24 hrs
     channelHandler.onMessageUpdated = (channel, message) => {
-      console.log("onMessageUpdated:", message)
-    }
+      console.log("onMessageUpdated:", message);
+    };
+
     sdk.addChannelHandler("abc12334", channelHandler);
   }
 
@@ -122,7 +159,6 @@ function GroupChannel({ sdk, userId }) {
               onUpdateMessage={onUpdateMessage}
               emojiContainer={emojiContainer}
               userId={userId}
-              checkCurrentMessageSeen={checkCurrentMessageSeen}
             />
           )}
           onBeforeSendUserMessage={handleSendUserMessage}

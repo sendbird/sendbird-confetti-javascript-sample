@@ -9,13 +9,9 @@ export default function CustomizedMessageItem(props) {
     emojiContainer,
     onDeleteMessage,
     onUpdateMessage,
-    userId,
-    checkCurrentMessageSeen
+    userId
   } = props;
 
-  if (message) {
-    checkCurrentMessageSeen(message);
-  }
 
   const MessageHOC = useMemo(() => {
     if (message.isAdminMessage && message.isAdminMessage()) {
