@@ -1,4 +1,3 @@
-// "use strict";
 import "sendbird-uikit/dist/index.css";
 import React, { useState } from "react";
 import {
@@ -9,7 +8,6 @@ import {
   withSendBird,
 } from "sendbird-uikit";
 import "./index.css";
-import CustomizedMessageItem from "./CustomizedMessageItem";
 import Confetti from "react-confetti";
 
 function GroupChannel({ sdk, userId }) {
@@ -42,7 +40,6 @@ function GroupChannel({ sdk, userId }) {
     const userMessageParams = new sdk.UserMessageParams();
     let lowerCaseText = text.toLowerCase();
     let createdAt = new Date().getTime();
-    console.log(createdAt);
     if (lowerCaseText.includes("congrat")) {
       userMessageParams.data = "confetti";
       var shownConfettiArray = new sdk.MessageMetaArray("shownConfetti", [
@@ -94,15 +91,11 @@ function GroupChannel({ sdk, userId }) {
     var channelHandler = new sdk.ChannelHandler();
     channelHandler.onMessageReceived = (channel, message) => {
       if (message.data === "confetti") {
-        var startDate = message.createdAt;
-        var endDate = new Date().getTime();
-        var difference = endDate - startDate;
-        var secondsInDay = 86400;
         var metaArraysValue = message.metaArrays[0].value;
         var found = metaArraysValue.find((msgString) =>
           msgString.includes(userId)
         );
-        if (!found && difference < secondsInDay) {
+        if (!found) {
           let currentMessageString = `${userId}=${message.createdAt}`;
           metaArraysValue.push(currentMessageString);
           currentChannel.addMessageMetaArrayValues(
@@ -118,11 +111,6 @@ function GroupChannel({ sdk, userId }) {
         }
       }
     };
-
-    channelHandler.onMessageUpdated = (channel, message) => {
-      console.log("onMessageUpdated:", message);
-    };
-
     sdk.addChannelHandler("abc12334", channelHandler);
   }
 
@@ -147,24 +135,7 @@ function GroupChannel({ sdk, userId }) {
             setShowSettings(!showSettings);
             renderSettingsBar();
           }}
-          renderChatItem={({
-            message,
-            onDeleteMessage,
-            onUpdateMessage,
-            emojiContainer,
-          }) => (
-            <CustomizedMessageItem
-              message={message}
-              onDeleteMessage={onDeleteMessage}
-              onUpdateMessage={onUpdateMessage}
-              emojiContainer={emojiContainer}
-              userId={userId}
-            />
-          )}
           onBeforeSendUserMessage={handleSendUserMessage}
-          // ** no duplicate props allowed:
-          // onBeforeUpdateUserMessage={handleSendUserMessage}
-          // onBeforeUpdateUserMessage={handleSendUserMessage}
         />
       </div>
       {showSettings && (
