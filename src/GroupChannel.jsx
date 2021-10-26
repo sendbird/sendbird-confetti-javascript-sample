@@ -115,7 +115,7 @@ function GroupChannel({ sdk, userId }) {
   }
 
   return (
-    <div className="group-channel-wrap">
+    <div className="channel-wrap">
       {showConfetti && (
         <Confetti width={1300} height={800} recycle={recycleOption} />
       )}
